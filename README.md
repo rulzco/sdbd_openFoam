@@ -1,1 +1,1 @@
-# sdbd_openFoam
+# SDBD_OpenFoam
