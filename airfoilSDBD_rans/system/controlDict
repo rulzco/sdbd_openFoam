@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5                                     |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+application     pimpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1.0;
+
+deltaT          1e-3;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.1;
+
+purgeWrite      0;//0
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.99;
+maxDeltaT       0.01;
+
+functions
+{
+
+    #includeFunc  vorticity 	
+    #includeFunc  residuals
+    #includeFunc  yPlus	
+    #includeFunc  wallShearStress
+    //#include "forceCoeffs"
+	forces
+	{
+	    type            forceCoeffs;
+	    libs            ("libforces.so");
+	    writeControl    timeStep;
+	    writeInterval   1;
+
+	    patches         ("airfoil.*");
+	    rho             rhoInf;      // Indicates incompressible
+	    log             true;
+	    rhoInf          1;           // Redundant for incompressible
+        liftDir         (0 0 1);
+        dragDir         (1 0 0);
+	    CofR            (0.25 0 0);  // Axle midpoint
+	    pitchAxis       (0 1 0);
+	    magUInf         3.00;
+	    lRef            1.0;        // length
+	    Aref            0.05;        // Estimated
+	}
+//    foamMonitor -l postProcessing/residuals/0/residuals.dat 
+//    rsync -arvz /home/user/OpenFOAM/user-6/run/naca0015/Re_200000 openfoam:~/OpenFOAM/openfoam-v1712/run/naca0015/
+//    rsync -arvz openfoam:~/OpenFOAM/openfoam-v1712/run/naca0015/Re_200000 /home/user/OpenFOAM/user-6/run/naca0015/
+//	  potentialFoam -writePhi -writep > log
+//    rotateMesh "(0 0 1)" "(0 1 0)"
+// postProcess -func Q -latestTime   	
+
+} 
+
+// ************************************************************************* //

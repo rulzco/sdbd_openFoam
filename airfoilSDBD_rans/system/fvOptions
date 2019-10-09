@@ -1,0 +1,116 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5                                     |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+momentumSource
+{
+    type            vectorCodedSource;
+    active          on; // true;
+    selectionMode   cellSet;
+    cellSet         plasma;
+
+    name            velocitySource;
+
+    vectorCodedSourceCoeffs
+    {
+
+    	fields (U);
+    	selectionMode   cellSet;
+    	cellSet        plasma;
+    	//selectionMode   cellZone;
+    	//cellZone        plasma;
+		name            momentumSource;
+	    //redirectType    none;
+
+    	codeInclude
+    	#{
+
+    	#};
+        
+	    codeCorrect
+	    #{
+	        //Pout<< "**codeCorrect**" << endl;
+	    #};
+    
+	    codeAddSup
+	    #{
+	    cellSet selectedCells (mesh_, cellSetName_);
+            labelList cells = selectedCells.toc ();
+            const Time& time = mesh().time();
+
+            const scalar pi(M_PI);
+            const scalar f_base=2e3; //Hz
+			const scalar f_burst = 15; //Hz
+            const scalar startTime = 1.001; // s
+            //const scalar stopTime = 1.8;
+            
+
+            int F_burst = sign(sin(2*pi*time.value()*f_burst));
+            //if (time.value()> startTime && time.value()<stopTime)
+            if (time.value()> startTime && time.value()*F_burst>0)
+            {
+            	scalar V = 0.0;
+	            forAll (cells, i)
+	            {
+	                V += mesh_. V () [cells_ [i]];
+	            }
+	            reduce (V, sumOp <scalar> ());
+
+		        DimensionedField <vector, volMesh> Su
+				(
+				    IOobject
+				    (
+				        "Su",
+				        mesh_.time (). timeName (),
+	                    mesh_,
+	                    IOobject :: NO_READ,
+	                    IOobject :: NO_WRITE
+				    ),
+				    mesh_,
+				    dimensioned <vector>
+				    (
+				    	"0",
+				    	dimAcceleration,
+				    	pTraits <vector> :: zero
+				    ),
+				    false
+				);
+	            UIndirectList <vector> (Su, cells) = vector (0.00165, 0, 0) / V;// volume = 4.17738e-06
+	            eqn += Su*pow(sin(2*pi*f_base*time.value()),2);
+            }
+
+	        //Pout << "***codeAddSup***" << endl;
+	        
+	    #};
+       
+	    codeSetValue
+	    #{
+	       	//Pout<< "**codeSetValue**" << endl;
+	    #};
+	        
+	    // Dummy entry
+	    code
+	    #{
+	        $codeInclude
+	        $codeCorrect
+	        $codeAddSup
+	        $codeSetValue
+	    #};	
+
+	}
+
+
+
+// ************************************************************************* //

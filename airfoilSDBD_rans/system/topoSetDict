@@ -1,0 +1,58 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5                                     |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Plasma
+    {
+        name    plasmaCellSet;
+        type    cellSet;
+        action  new;
+        //source  boxToCell;
+        source rotatedBoxToCell;
+        //source labelToCell;
+        sourceInfo
+        {
+         //3%c
+          origin (0.0285 -0.15 0.0234) ;
+          i (0.0310258 0 0.0053); 
+          j (0 0.3 0);
+          k (0 0 0.0033); 
+          //10%c
+          //origin (0.09516  -0.5 0.0294) ;
+          //i (0.0310258 0 -0.0022); 
+          //j (0 1.0 0);
+          //k (0.00083 0 0.002814);
+          //value (246557 246556 246555 246554 246747 246746 246745 246744);
+        }
+    }
+
+    {
+        name    plasma;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set plasmaCellSet;
+        }
+    }
+
+);
+
+
+// ************************************************************************* //
